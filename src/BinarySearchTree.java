@@ -24,7 +24,7 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
                 return null;
             }
         }else if(node.getKey().compareTo(key) == 0){
-            return (BinaryNode) node;
+            return node;
         }else{
             if(node.hasRight())
                 return retrieve(node.getRight(), key);
@@ -81,15 +81,37 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
     }
 
     private T delete(BinaryNode node){
-        BinaryNode aux = findMax(node.getLeft());
+        if(node == null){
+            throw new NullPointerException("Ingresa una clave que se encuentre en el árbol");
+        }
         T element = (T) node.getElement();
-        node.setElement(aux.getElement());
-        node.setKey(aux.getKey());
-        if(node.getLeft().hasRight())
-            findMax(node.getLeft()).getParent().setRight(null);
-        else
-            node.getLeft().getParent().setLeft(null);
-        return element;
+        if(node.hasLeft()){
+            BinaryNode aux = findMax(node.getLeft());
+            node.setElement(aux.getElement());
+            node.setKey(aux.getKey());
+            if(node.getLeft().hasRight())
+                findMax(node.getLeft()).getParent().setRight(null);
+            else
+                node.getLeft().getParent().setLeft(null);
+            return element;
+        }else{
+            if(node.hasRight()){
+                if(node.getKey().compareTo(node.getParent().getKey()) < 0){
+                    node.getParent().setLeft(node.getRight());
+                    node.getRight().setParent(node.getParent());
+                }else{
+                    node.getParent().setRight(node.getRight());
+                    node.getRight().setParent(node.getParent());
+                }
+                return element;
+            }else{
+                if(node.getKey().compareTo(node.getParent().getKey()) < 0)
+                    node.getParent().setLeft(null);
+                else
+                    node.getParent().setRight(null);
+                return element;
+            }
+        }
     }
 
 
@@ -153,17 +175,37 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public void preorden() {
-        preorden(root);
+        aux = false;
+        System.out.println("El preorden es:");
+        System.out.println(root.getElement());
+        if(root.hasLeft()){
+            preorden(root.getLeft());
+        }else if(root.hasRight()){
+            preorden(root.getRight());
+        }
     }
 
 
     public void preorden(BinaryNode node){
-        if(node == null)
-            return;
-        
-        System.out.print(node.getElement() + " ");   
-        preorden(node.getLeft());  
-        preorden(node.getRight());
+        System.out.println(node.getElement());
+        if(!node.hasLeft()){
+            if(node.hasRight()){
+                preorden(node.getRight());
+            }else{
+                if(!node.getParent().hasRight() || node.getParent().getRight().equals(node) || node.getParent().equals(root)){
+                    if(!aux) {
+                        aux = true;
+                        if (root.hasRight())
+                            preorden(root.getRight());
+                    }
+                }else
+                    preorden(node.getParent().getRight());
+            }
+        }else{
+            preorden(node.getLeft());
+        }
+
+
     }
 
     /**
@@ -171,16 +213,39 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public void inorden() {
-        inorden(root);
+        aux = false;
+        System.out.println("El inorden es: ");
+        if(!root.hasLeft()){
+            System.out.println(root.getElement());
+            if(root.hasRight()){
+                inorden(root.getRight());
+            }
+        }else{
+            inorden(root.getLeft());
+        }
     }
 
     public void inorden(BinaryNode node){
-        if(node == null)
-            return;
-        
-        inorden(node.getLeft());
-        System.out.print(node.getElement() + " ");
-        inorden(node.getRight());
+        if(!node.hasLeft()){
+            System.out.println(node.getElement());
+            if(node.hasRight()){
+                inorden(node.getRight());
+            }else{
+                if(!node.getParent().hasRight() || node.getParent().getRight().equals(node) || node.getParent().equals(root)){
+                    if(!aux) {
+                        aux = true;
+                        System.out.println(root.getElement());
+                        if (root.hasRight())
+                            inorden(root.getRight());
+                    }
+                }else {
+                    System.out.println(node.getParent().getElement());
+                    inorden(node.getParent().getRight());
+                }
+            }
+        }else{
+            inorden(node.getLeft());
+        }
     }
 
 
@@ -189,17 +254,7 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public void postorden() {
-        System.out.println("El postorden es:");
-        postorden(root);
-    }
 
-    public void postorden(BinaryNode node){
-        if( node == null )
-            return;
-        
-        postorden(node.getLeft());
-        postorden(node.getRight());
-        System.out.print(node.getElement() + " ");
     }
 
     /**
@@ -216,28 +271,24 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
     public static void main(String[] args) {
         BinarySearchTree<Integer,String> binarySearchTree = new BinarySearchTree<Integer, String>();
         binarySearchTree.insert("A",17);
-        binarySearchTree.insert("B", 5);
+        binarySearchTree.insert("B", 8);
         binarySearchTree.insert("J", 3);
-        binarySearchTree.insert("E", 15);
-        binarySearchTree.insert("L", 6);
-        binarySearchTree.insert("M", 8);
-        binarySearchTree.insert("N", 7);
-        binarySearchTree.insert("R", 9);
-        binarySearchTree.insert("Y", 16);
-        /*binarySearchTree.insert("C", 11);
+        binarySearchTree.insert("E", 10);
+        binarySearchTree.insert("Y", 12);
+        binarySearchTree.insert("C", 11);
         binarySearchTree.insert("D", 14);
         binarySearchTree.insert("K", 13);
-        binarySearchTree.insert("V", 15);*/
+        binarySearchTree.insert("V", 15);
         binarySearchTree.insert("Z", 20);
         binarySearchTree.insert("H", 26);
 
-        // binarySearchTree.inorden();
+       // binarySearchTree.inorden();
 
         //System.out.println(binarySearchTree.retrieve(12).getElement());
 
-        //System.out.println("Se borró el elemento: " + binarySearchTree.delete(12));
+        //System.out.println("Se borró el elemento: " + binarySearchTree.delete(9));
 
-        binarySearchTree.inorden();
+        binarySearchTree.preorden();
 
         //System.out.println(binarySearchTree.root.getElement());
 
