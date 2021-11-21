@@ -12,7 +12,7 @@ public interface TDABinarySearchTree<K extends Comparable, T>{
 	* @param k la clave a buscar.
 	* @return el elemento con clave k o null si no existe.
 	*/
-	public T retrieve(K k);
+	public BinaryNode retrieve(K k);
 
 	/**
 	* Inserta un nuevo elemento al árbol.
@@ -33,13 +33,13 @@ public interface TDABinarySearchTree<K extends Comparable, T>{
 	* Encuentra la clave k con valor o peso mínimo del árbol.
 	* @return el elemento con llave de peso mínimo.
 	*/
-	public T findMin();
+	public BinaryNode findMin(BinaryNode node);
 
 	/**
 	* Encuentra la clave k con valor o peso máximo del árbol.
 	* @return el elemento con llave de peso máximo.
 	*/
-	public T findMax();
+	public BinaryNode findMax(BinaryNode node);
 
 	/**
 	 * Recorre el árbol en preorden.

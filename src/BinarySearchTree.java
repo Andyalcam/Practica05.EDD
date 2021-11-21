@@ -12,11 +12,11 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      * @return el elemento con clave k o null si no existe.
      */
     @Override
-    public T retrieve(K k) {
+    public BinaryNode retrieve(K k) {
         return retrieve(root, k);
     }
 
-    private T retrieve(BinaryNode node, K key){
+    private BinaryNode retrieve(BinaryNode node, K key){
         if(node.getKey().compareTo(key) > 0){
             if(node.hasLeft())
                 return retrieve(node.getLeft(), key);
@@ -24,7 +24,7 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
                 return null;
             }
         }else if(node.getKey().compareTo(key) == 0){
-            return (T) node.getElement();
+            return (BinaryNode) node;
         }else{
             if(node.hasRight())
                 return retrieve(node.getRight(), key);
@@ -74,8 +74,24 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public T delete(K k) {
-        return null;
+        if(this.isEmpty())
+            return null;
+        else
+            return delete(retrieve(k));
     }
+
+    private T delete(BinaryNode node){
+        BinaryNode aux = findMax(node.getLeft());
+        T element = (T) node.getElement();
+        node.setElement(aux.getElement());
+        node.setKey(aux.getKey());
+        if(node.getLeft().hasRight())
+            findMax(node.getLeft()).getParent().setRight(null);
+        else
+            node.getLeft().getParent().setLeft(null);
+        return element;
+    }
+
 
     /**
      * Encuentra la clave k con valor o peso mínimo del árbol.
@@ -83,8 +99,26 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      * @return el elemento con llave de peso mínimo.
      */
     @Override
-    public T findMin() {
-        return null;
+    public BinaryNode findMin(BinaryNode node) {
+        if(this.isEmpty())
+            return null;
+        else{
+            return findMinAux(node);
+        }
+    }
+
+    public BinaryNode findMin(){
+       if(this.isEmpty())
+           return null;
+       else
+           return findMinAux(root);
+    }
+
+    private BinaryNode findMinAux(BinaryNode actual){
+        if(actual.hasLeft())
+            return findMinAux(actual.getLeft());
+        else
+            return actual;
     }
 
     /**
@@ -93,8 +127,25 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      * @return el elemento con llave de peso máximo.
      */
     @Override
-    public T findMax() {
-        return null;
+    public BinaryNode findMax(BinaryNode node) {
+        if(this.isEmpty())
+            return null;
+        else
+            return findMaxAux(node);
+    }
+
+    public BinaryNode findMax(){
+        if(this.isEmpty())
+            return null;
+        else
+            return findMax(root);
+    }
+
+    private BinaryNode findMaxAux(BinaryNode node){
+        if(node.hasRight())
+            return findMax(node.getRight());
+        else
+            return node;
     }
 
     /**
@@ -203,16 +254,25 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
 
     public static void main(String[] args) {
         BinarySearchTree<Integer,String> binarySearchTree = new BinarySearchTree<Integer, String>();
-        binarySearchTree.insert("A",5);
-        binarySearchTree.insert("B", 2);
-        binarySearchTree.insert("J", 1);
-        binarySearchTree.insert("E", 3);
-        binarySearchTree.insert("Y", 4);
-        binarySearchTree.insert("Z", 8);
-        binarySearchTree.insert("H", 10);
+        binarySearchTree.insert("A",17);
+        binarySearchTree.insert("B", 8);
+        binarySearchTree.insert("J", 3);
+        binarySearchTree.insert("E", 10);
+        binarySearchTree.insert("Y", 12);
+        binarySearchTree.insert("C", 11);
+        binarySearchTree.insert("D", 14);
+        binarySearchTree.insert("K", 13);
+        binarySearchTree.insert("V", 15);
+        binarySearchTree.insert("Z", 20);
+        binarySearchTree.insert("H", 26);
+
        // binarySearchTree.inorden();
 
-        System.out.println(binarySearchTree.retrieve(19));
+        //System.out.println(binarySearchTree.retrieve(12).getElement());
+
+        System.out.println("Se borró el elemento: " + binarySearchTree.delete(12));
+
+        binarySearchTree.preorden();
 
         //System.out.println(binarySearchTree.root.getElement());
 

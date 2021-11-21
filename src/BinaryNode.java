@@ -42,6 +42,14 @@ public class BinaryNode<K extends Comparable,T>{
         this.parent = parent;
     }
 
+    public void setKey(K key) {
+        this.key = key;
+    }
+
+    public void setElement(T element) {
+        this.element = element;
+    }
+
     public Boolean hasLeft(){
         return this.getLeft() != null;
     }
