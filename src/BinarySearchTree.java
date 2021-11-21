@@ -153,6 +153,7 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public void preorden() {
+        System.out.print("El preorden es: ");
         preorden(root);
     }
 
@@ -171,6 +172,7 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public void inorden() {
+        System.out.print("El inorden es: ");
         inorden(root);
     }
 
@@ -189,7 +191,7 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public void postorden() {
-        System.out.println("El postorden es:");
+        System.out.print("El postorden es: ");
         postorden(root);
     }
 
