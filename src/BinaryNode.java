@@ -57,4 +57,8 @@ public class BinaryNode<K extends Comparable,T>{
     public Boolean hasRight(){
         return this.getRight() != null;
     }
+
+    public String toString(){
+        return (String)getElement();
+    }
 }
