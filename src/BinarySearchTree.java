@@ -14,25 +14,34 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      * @return el elemento con clave k o null si no existe.
      */
     @Override
-    public BinaryNode retrieve(K k) {
-        return retrieve(root, k);
+    public T retrieve(K k) {
+        BinaryNode node = retrieve(root,k);
+        if(node == null) //Si no existe el elemento.
+            return null;
+        return (T) node.getElement();
     }
 
+    /**
+     * Método auxiliar para retrieve y obtener un nodo con tener la clave
+     *
+     * @param node nodo por el que empezaremos
+     * @param key llave del nodo que buscamos
+     * @return El nodo con la clave que buscamos
+     */
     private BinaryNode retrieve(BinaryNode node, K key){
-        if(node.getKey().compareTo(key) > 0){
-            if(node.hasLeft())
-                return retrieve(node.getLeft(), key);
-            else {
-                return null;
-            }
-        }else if(node.getKey().compareTo(key) == 0){
+        //Si no existe el nodo
+        if(node == null)
+            return null;
+
+        // Si encontramos el elemento
+        if(node.getKey().compareTo(key) == 0)
             return node;
-        }else{
-            if(node.hasRight())
-                return retrieve(node.getRight(), key);
-            else {
-                return null;
-            }
+
+        // Comparamos los elementos
+        if(key.compareTo(node.getKey()) < 0){ // Verificamos en la izquierda
+            return retrieve(node.getLeft(), key);
+        } else { // Verificar en la derecha
+            return retrieve(node.getRight(), key);
         }
     }
 
@@ -44,21 +53,28 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public void insert(T e, K k) {
-        if(root == null){
+        if(isEmpty()){ //Si el árbol es vacío.
             root = new BinaryNode<>(e, k, null);
             return;
         }
         insert(e, k, root);
     }
 
+    /**
+     * Método auxiliar de insert para saber en que lugar irá el nodo que insertaremos.
+     * @param e - elemento que ingresaremos.
+     * @param key - llave del nodo.
+     * @param node - nodo con el que compararemos.
+     */
+
     private void insert(T e, K key, BinaryNode node){
-        if(node.getKey().compareTo(key) >= 0){
+        if(node.getKey().compareTo(key) >= 0){//Si la clave del nodo a insertar es menor o igual al nodo existente
             if(node.hasLeft()){
                 insert(e, key, node.getLeft());
             }else{
                 node.setLeft(new BinaryNode<>(e, key, node));
             }
-        }else{
+        }else{//Si la clave del nodo a insertar es mayor al nodo existente.
             if(node.hasRight()){
                 insert(e, key, node.getRight());
             }else{
@@ -76,68 +92,95 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
      */
     @Override
     public T delete(K k) {
-        if(this.isEmpty())
+        if(this.isEmpty()) //Si el árbol es vacío regresa null
             return null;
         else
-            return delete(retrieve(k));
+            return delete(retrieve(root,k));
     }
 
-    private T delete(BinaryNode node){
+    /**
+     * Método auxiliar para delete.
+     * @param node nodo que eliminaremos.
+     * @return elemento del nodo que se borró.
+     */
 
-        if(node == null){
-            throw new NullPointerException();
+    private T delete(BinaryNode node){
+        if(node == null){ //Si no existe el elemento regresará null.
+            return null;
         }
+
+        BinaryNode aux;
+
         T element = (T) node.getElement();
-        if(node.hasLeft()){
-            BinaryNode aux = findMax(node.getLeft());
-            node.setElement(aux.getElement());
-            node.setKey(aux.getKey());
-            if(node.getLeft().hasRight())
-                findMax(node.getLeft()).getParent().setRight(null);
-            else
-                node.getLeft().getParent().setLeft(null);
-            return element;
-        }else{
-            if(node.hasRight()){
-                if(node.getKey().compareTo(node.getParent().getKey()) < 0){
-                    node.getParent().setLeft(node.getRight());
-                    node.getRight().setParent(node.getParent());
-                }else{
-                    node.getParent().setRight(node.getRight());
-                    node.getRight().setParent(node.getParent());
+
+        if(node.hasLeft()){//Si el elemento a borrar tiene hijo izquierdo.
+            aux = findMaxAux(node.getLeft());
+            if(aux.isLeaf()){//Verificaremos si el elemento más grande es una hoja.
+                if(aux.getParent().equals(node))//Si el nodo máximo es hijo del elemento a borrar.
+                    node.setLeft(null);
+                else//Por si hay más nodos entre el nodo a borrar y el máximo.
+                    aux.getParent().setRight(null);
+            }else{//Si el elemento máximo no es una hoja.
+                aux.getLeft().setParent(aux.getParent());
+                aux.getParent().setRight(aux.getLeft());
+            }
+        }else{//Verificaremos si tiene hijo derecho o no es una hoja.
+            if(node.hasRight()){//Si hay hijo derecho.
+                aux = findMaxAux(node.getRight());
+                if(aux.isLeaf()){//Verificaremos si el elemento más grande es una hoja.
+                    if(aux.getParent().equals(node)) //Si el nodo máximo es hijo del elemento a borrar.
+                        node.setRight(null);
+                    else //Por si hay más nodos entre el nodo a borrar y el máximo.
+                        aux.getParent().setRight(null);
+                }else{//Si el elemento máximo no es una hoja.
+                    aux.getLeft().setParent(aux.getParent());
+                    aux.getParent().setRight(aux.getLeft());
                 }
-                return element;
-            }else{
-                if(node.getKey().compareTo(node.getParent().getKey()) < 0)
+            }else{//Si no tiene hijos
+                if(node.getKey().compareTo(node.getParent().getKey()) < 0) //Si es hijo izquierdo.
                     node.getParent().setLeft(null);
-                else
+                else //Si es hijo derecho.
                     node.getParent().setRight(null);
                 return element;
             }
         }
+        node.setElement(aux.getElement());
+        node.setKey(aux.getKey());
+        return element;
     }
 
 
     /**
      * Encuentra la clave k con valor o peso mínimo del árbol.
-     *
+     * @param node - nodo base del que encontraremos el mínimo.
      * @return el elemento con llave de peso mínimo.
      */
     @Override
-    public BinaryNode findMin(BinaryNode node) {
+    public T findMin(BinaryNode node) {
         if(this.isEmpty())
             return null;
         else{
-            return findMinAux(node);
+            return (T) findMinAux(node).getElement();
         }
     }
 
-    public BinaryNode findMin(){
+    /**
+     * Método que encuentra el elemento mínimo del árbol.
+     * @return El elemento con la llave de peso mínimo.
+     */
+
+    public T findMin(){
        if(this.isEmpty())
            return null;
        else
-           return findMinAux(root);
+           return (T) findMinAux(root).getElement();
     }
+
+    /**
+     * Método auxiliar de findMin para saber el nodo del elemento mínimo.
+     * @param node - Nodo base del que encontraremos el mínimo.
+     * @return Nodo del elemento mínimo.
+     */
 
     private BinaryNode findMinAux(BinaryNode node){
         if(node.hasLeft())
@@ -146,29 +189,41 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
             return node;
     }
 
+
     /**
      * Encuentra la clave k con valor o peso máximo del árbol.
      *
      * @return el elemento con llave de peso máximo.
      */
     @Override
-    public BinaryNode findMax(BinaryNode node) {
+    public T findMax(BinaryNode node) {
         if(this.isEmpty())
             return null;
         else
-            return findMaxAux(node);
+            return (T) findMaxAux(node).getElement();
     }
 
-    public BinaryNode findMax(){
+    /**
+     * Método que encuentra la clave k con valor o peso máximo del árbol.
+     *
+     * @return el elemento con llave de peso máximo
+     */
+    public T findMax(){
         if(this.isEmpty())
             return null;
         else
-            return findMax(root);
+            return (T) findMaxAux(root).getElement();
     }
 
+
+    /**
+     * Método auxiliar de findMax para encontrar la clave con mayor peso.
+     * @param node - nodo del que tomaremos como base para encontrar el máximo.
+     * @return nodo del elemento máximo.
+     */
     private BinaryNode findMaxAux(BinaryNode node){
         if(node.hasRight())
-            return findMax(node.getRight());
+            return findMaxAux(node.getRight());
         else
             return node;
     }
@@ -181,7 +236,10 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
         preorden(root);
     }
 
-
+    /**
+     * Método auxiliar de preorden para hacer el recorrido del árbol.
+     * @param node - nodo del que empezaremos el recorrido.
+     */
     public void preorden(BinaryNode node){
          if(node == null)
             return;
@@ -199,6 +257,10 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
         inorden(root);
     }
 
+    /**
+     * Método auxiliar de inorden para recorrer el árbol.
+     * @param node - nodo del que empezaremos.
+     */
     public void inorden(BinaryNode node){
         if(node == null)
             return;
@@ -217,10 +279,13 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
         postorden(root);
     }
 
+    /**
+     * Método auxiliar de postorden para hacer recorrido del árbol.
+     * @param node - nodo del que empezaremos.
+     */
      public void postorden(BinaryNode node){
         if( node == null )
             return;
-        
         postorden(node.getLeft());
         postorden(node.getRight());
         System.out.print(node.getElement() + " ");
@@ -236,30 +301,29 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
         return root == null;
     }
 
-
     public static void main(String[] args) {
 
         // Colores de letra
-        String red="\033[31m"; 
-        String green="\033[32m"; 
-        String yellow="\033[33m";
-        String purple="\033[35m"; 
-        String cyan="\033[36m";
+        String red = "\033[31m";
+        String green = "\033[32m";
+        String yellow = "\033[33m";
+        String purple = "\033[35m";
+        String cyan = "\033[36m";
         // Reset
-        String reset="\u001B[0m";
+        String reset = "\u001B[0m";
 
-        BinarySearchTree<Integer,String> binarySearchTree = new BinarySearchTree<Integer, String>();
-        boolean excep = true,repe;
+        BinarySearchTree<Integer, String> binarySearchTree = new BinarySearchTree<Integer, String>();
+        boolean excep = true, repe;
         Scanner in = new Scanner(System.in);
         Scanner on = new Scanner(System.in);
-        int opc,b;
+        int opc, b;
         int clave = 0;
-        String tupla = "",a;
+        String tupla = "", a;
 
         System.out.println("*** BIENVENIDO ***");
 
         while (excep) {
-            try{
+            try {
                 System.out.println("\n\t\t*** Menu ***");
                 System.out.println("--------------------------------------------");
                 System.out.println("1. Insertar");
@@ -278,156 +342,125 @@ public class BinarySearchTree <K extends Comparable,T> implements TDABinarySearc
 
                 switch (opc) {
                     case 1:
-                            System.out.println("Ingresa el elemento que quieres insertar y su clave. Ej: 2,3");
-                            repe = true;
-                            while(repe){
-                                try{
-                                    tupla = on.nextLine().trim();
-                                    a = (tupla.split(",")[0]).trim();
-                                    b = Integer.parseInt(tupla.split(",")[1]);
-                                    binarySearchTree.insert(a,b);
-                                    repe = false;
-                                }catch(Exception e){
-                                    System.out.println(yellow + "\t Intentalo de nuevo. Sigue el ejemplo :)" + reset);
-                                }
+                        System.out.println("Ingresa el elemento que quieres insertar y su clave. Ej: 2,3");
+                        repe = true;
+                        while (repe) {
+                            try {
+                                tupla = on.nextLine().trim();
+                                a = (tupla.split(",")[0]).trim();
+                                b = Integer.parseInt(tupla.split(",")[1]);
+                                binarySearchTree.insert(a, b);
+                                repe = false;
+                            } catch (Exception e) {
+                                System.out.println(yellow + "\t Intentalo de nuevo. Sigue el ejemplo :)" + reset);
                             }
+                        }
                         break;
                     case 2:
-                            System.out.println("Ingresa la clave del elemento que deseas borrar");
-                            repe = true;
-                            while (repe) {
-                                try{
-                                    clave = in.nextInt();
-                                    if (!binarySearchTree.isEmpty()){
-                                        System.out.println(green + "El elemento que se borro es: " + binarySearchTree.delete(clave) + reset);
-                                    }else{
-                                        System.out.println(yellow + "\tEl árbol es vacío" + reset);
-                                    }
-                                    repe = false;
-                                }catch (InputMismatchException e) {
-                                    System.out.println(yellow + "\t Debes ingresar un número" + reset);
-                                    in.next();
-                                }catch (NullPointerException e) {
-                                    System.out.println(e + red + "No hay ningún elemento contenido en el árbol con clave " + clave +reset);
+                        System.out.println("Ingresa la clave del elemento que deseas borrar");
+                        repe = true;
+                        while (repe) {
+                            try {
+                                clave = in.nextInt();
+                                if (!binarySearchTree.isEmpty()) {
+                                    System.out.println(green + "El elemento que se borro es: " + binarySearchTree.delete(clave) + reset);
+                                } else {
+                                    System.out.println(yellow + "\tEl árbol es vacío" + reset);
                                 }
+                                repe = false;
+                            } catch (InputMismatchException e) {
+                                System.out.println(yellow + "\t Debes ingresar un número" + reset);
+                                in.next();
+                            } catch (NullPointerException e) {
+                                System.out.println(e + red + "No hay ningún elemento contenido en el árbol con clave " + clave + reset);
                             }
+                        }
                         break;
                     case 3:
-                            if (!binarySearchTree.isEmpty()) {
-                                System.out.print(green + "El preorden es: ");
-                                binarySearchTree.preorden();
-                                System.out.println(reset);
-                            }else{
-                                System.out.println(yellow + "\tEl árbol es vacío"+reset);
-                            }
+                        if (!binarySearchTree.isEmpty()) {
+                            System.out.print(green + "El preorden es: ");
+                            binarySearchTree.preorden();
+                            System.out.println(reset);
+                        } else {
+                            System.out.println(yellow + "\tEl árbol es vacío" + reset);
+                        }
                         break;
                     case 4:
-                            if (!binarySearchTree.isEmpty()) {
-                                System.out.print(green + "El inorden es: ");
-                                binarySearchTree.inorden();
-                                System.out.println(reset);
-                            }else{
-                                System.out.println(yellow + "\tEl árbol es vacío"+reset);
-                            }
+                        if (!binarySearchTree.isEmpty()) {
+                            System.out.print(green + "El inorden es: ");
+                            binarySearchTree.inorden();
+                            System.out.println(reset);
+                        } else {
+                            System.out.println(yellow + "\tEl árbol es vacío" + reset);
+                        }
                         break;
                     case 5:
-                            if (!binarySearchTree.isEmpty()) {
-                                System.out.print(green + "El postorden es: ");
-                                binarySearchTree.postorden();
-                                System.out.println(reset);
-                            }else{
-                                System.out.println(yellow + "\tEl árbol es vacío"+reset);
-                            }
+                        if (!binarySearchTree.isEmpty()) {
+                            System.out.print(green + "El postorden es: ");
+                            binarySearchTree.postorden();
+                            System.out.println(reset);
+                        } else {
+                            System.out.println(yellow + "\tEl árbol es vacío" + reset);
+                        }
                         break;
                     case 6:
-                            if (!binarySearchTree.isEmpty()) {
-                                System.out.println(green + "\tEl árbol no es vacío" + reset);
-                            }else{
-                                System.out.println(yellow + "\tEl árbol es vacío"+reset);
-                            }
+                        if (!binarySearchTree.isEmpty()) {
+                            System.out.println(green + "\tEl árbol no es vacío" + reset);
+                        } else {
+                            System.out.println(yellow + "\tEl árbol es vacío" + reset);
+                        }
                         break;
                     case 7:
-                            System.out.println("Ingresa la clave del elemento que deseas obtener");
-                            repe = true;
-                            while (repe) {
-                                try{
-                                    clave = in.nextInt();
-                                    if (!binarySearchTree.isEmpty()){
-                                        if (binarySearchTree.retrieve(clave) != null) {
-                                            System.out.println(green + "El elemento con clave " + clave + " es: " + binarySearchTree.retrieve(clave) + reset);
-                                        }else{
-                                            System.out.println(red + "No hay ningún elemento contenido en el árbol con clave " + clave +reset);
-                                        }
-                                    }else{
-                                        System.out.println(yellow + "\tEl árbol es vacío" + reset);
+                        System.out.println("Ingresa la clave del elemento que deseas obtener");
+                        repe = true;
+                        while (repe) {
+                            try {
+                                clave = in.nextInt();
+                                if (!binarySearchTree.isEmpty()) {
+                                    if (binarySearchTree.retrieve(clave) != null) {
+                                        System.out.println(green + "El elemento con clave " + clave + " es: " + binarySearchTree.retrieve(clave) + reset);
+                                    } else {
+                                        System.out.println(red + "No hay ningún elemento contenido en el árbol con clave " + clave + reset);
                                     }
-                                    repe = false;
-                                }catch (Exception e) {
-                                    System.out.println(yellow + "\t Debes ingresar un número" + reset + "\n");
-                                    in.next();
+                                } else {
+                                    System.out.println(yellow + "\tEl árbol es vacío" + reset);
                                 }
+                                repe = false;
+                            } catch (Exception e) {
+                                System.out.println(yellow + "\t Debes ingresar un número" + reset + "\n");
+                                in.next();
                             }
+                        }
                         break;
                     case 8:
-                            if (!binarySearchTree.isEmpty()) {
-                                System.out.println(green + "El elemento máximo del árbol es: " + binarySearchTree.findMax() + reset);
-                            }else{
-                                System.out.println(yellow + "\tEl árbol es vacío"+reset);
-                            }
+                        if (!binarySearchTree.isEmpty()) {
+                            System.out.println(green + "El elemento máximo del árbol es: " + binarySearchTree.findMax() + reset);
+                        } else {
+                            System.out.println(yellow + "\tEl árbol es vacío" + reset);
+                        }
                         break;
                     case 9:
-                            if (!binarySearchTree.isEmpty()) {
-                                System.out.println(green + "El elemento mínimo del árbol es: " + binarySearchTree.findMin() + reset);
-                            }else{
-                                System.out.println(yellow + "\tEl árbol es vacío"+reset);
-                            }
+                        if (!binarySearchTree.isEmpty()) {
+                            System.out.println(green + "El elemento mínimo del árbol es: " + binarySearchTree.findMin() + reset);
+                        } else {
+                            System.out.println(yellow + "\tEl árbol es vacío" + reset);
+                        }
                         break;
                     case 10:
-                            System.out.println(purple + "\tHasta luego :)" + reset + "\n");
-                            excep = false;
+                        System.out.println(purple + "\tHasta luego :)" + reset + "\n");
+                        excep = false;
                         break;
                     default:
-                            System.out.println(yellow + "\tElige una opcion de menu plis :c" + reset);
+                        System.out.println(yellow + "\tElige una opcion de menu plis :c" + reset);
                         break;
                 }
 
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(yellow + "\tDebes ingresar un número\tIntentalo de nuevo" + reset);
                 in.next();
                 excep = true;
             }
-            
+
         }
-
-
-
-
-
-        /*BinarySearchTree<Integer,String> binarySearchTree = new BinarySearchTree<Integer, String>();
-        binarySearchTree.insert("A",17);
-        binarySearchTree.insert("B", 8);
-        binarySearchTree.insert("J", 3);
-        binarySearchTree.insert("E", 10);
-        binarySearchTree.insert("Y", 12);
-        binarySearchTree.insert("C", 11);
-        binarySearchTree.insert("D", 14);
-        binarySearchTree.insert("K", 13);
-        binarySearchTree.insert("V", 15);
-        binarySearchTree.insert("Z", 20);
-        binarySearchTree.insert("H", 26);
-
-       // binarySearchTree.inorden();
-
-        //System.out.println(binarySearchTree.retrieve(12).getElement());
-
-        //System.out.println("Se borró el elemento: " + binarySearchTree.delete(9));
-
-        binarySearchTree.preorden();
-        //binarySearchTree.inorden();
-        //binarySearchTree.postorden();
-
-        //System.out.println(binarySearchTree.root.getElement());*/
-
     }
-
 }

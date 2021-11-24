@@ -10,6 +10,10 @@ public class BinaryNode<K extends Comparable,T>{
         this.parent = parent;
     }
 
+    public boolean isLeaf(){
+        return !(this.hasRight() && this.hasLeft());
+    }
+
     public K getKey() {
         return key;
     }
